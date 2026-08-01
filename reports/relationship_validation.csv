@@ -1,0 +1,73 @@
+﻿category,subject,expected,actual,status,note
+PK_UNIQUE,order_item(order_item_id),0 중복,0,PASS,
+PK_UNIQUE,orders(order_id),0 중복,0,PASS,
+PK_UNIQUE,returns(return_id),0 중복,0,PASS,
+PK_UNIQUE,sku_master(sku_id),0 중복,0,PASS,
+PK_UNIQUE,product_master(product_id),0 중복,0,PASS,
+PK_UNIQUE,category_master(category_id),0 중복,0,PASS,
+COMPOSITE_PK,inventory_snapshot(snapshot_date+warehouse_id+sku_id),0 중복,0,PASS,
+PK_UNIQUE,inventory_policy(policy_id),0 중복,0,PASS,
+PK_UNIQUE,channel_master(channel_id),0 중복,0,PASS,
+PK_UNIQUE,purchase_order(po_id),0 중복,0,PASS,
+PK_UNIQUE,receipt(receipt_id),0 중복,0,PASS,
+PK_UNIQUE,action_log(action_id),0 중복,0,PASS,
+PK_UNIQUE,warehouse_master(warehouse_id),0 중복,0,PASS,
+FK_ORPHAN,order_item.order_id -> orders.order_id,0,0,PASS,
+FK_CARDINALITY,order_item.order_id -> orders.order_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=3, 자식유일=False"
+FK_CARD_DIST,orders 1건당 order_item 행수,,min=1 med=1 max=3 mean=1.25,,부모 7041종 매칭
+FK_ORPHAN,order_item.sku_id -> sku_master.sku_id,0,0,PASS,
+FK_CARDINALITY,order_item.sku_id -> sku_master.sku_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=50, 자식유일=False"
+FK_CARD_DIST,sku_master 1건당 order_item 행수,,min=1 med=23 max=50 mean=22.19,,부모 398종 매칭
+FK_ORPHAN,order_item.warehouse_id -> warehouse_master.warehouse_id,0,0,PASS,
+FK_CARDINALITY,order_item.warehouse_id -> warehouse_master.warehouse_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=8002, 자식유일=False"
+FK_CARD_DIST,warehouse_master 1건당 order_item 행수,,min=829 med=4415 max=8002 mean=4415.5,,부모 2종 매칭
+FK_ORPHAN,orders.channel_id -> channel_master.channel_id,0,0,PASS,
+FK_CARDINALITY,orders.channel_id -> channel_master.channel_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=3009, 자식유일=False"
+FK_CARD_DIST,channel_master 1건당 orders 행수,,min=571 med=1050 max=3009 mean=1408.8,,부모 5종 매칭
+FK_ORPHAN,returns.order_item_id -> order_item.order_item_id,0,0,PASS,
+FK_CARDINALITY,returns.order_item_id -> order_item.order_item_id,추정 1:1,검증 1:1,MATCH,"부모당 최대자식=1, 자식유일=True"
+FK_CARD_DIST,order_item 1건당 returns 행수,,min=1 med=1 max=1 mean=1.0,,부모 410종 매칭
+FK_ORPHAN,sku_master.product_id -> product_master.product_id,0,0,PASS,
+FK_CARDINALITY,sku_master.product_id -> product_master.product_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=12, 자식유일=False"
+FK_CARD_DIST,product_master 1건당 sku_master 행수,,min=2 med=8 max=12 mean=6.88,,부모 58종 매칭
+FK_ORPHAN,product_master.category_id -> category_master.category_id,0,0,PASS,
+FK_CARDINALITY,product_master.category_id -> category_master.category_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=4, 자식유일=False"
+FK_CARD_DIST,category_master 1건당 product_master 행수,,min=3 med=3 max=4 mean=3.05,,부모 19종 매칭
+FK_ORPHAN,inventory_snapshot.sku_id -> sku_master.sku_id,0,0,PASS,
+FK_CARDINALITY,inventory_snapshot.sku_id -> sku_master.sku_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=31, 자식유일=False"
+FK_CARD_DIST,sku_master 1건당 inventory_snapshot 행수,,min=31 med=31 max=31 mean=31.0,,부모 399종 매칭
+FK_ORPHAN,inventory_snapshot.warehouse_id -> warehouse_master.warehouse_id,0,0,PASS,
+FK_CARDINALITY,inventory_snapshot.warehouse_id -> warehouse_master.warehouse_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=11129, 자식유일=False"
+FK_CARD_DIST,warehouse_master 1건당 inventory_snapshot 행수,,min=1240 med=6184 max=11129 mean=6184.5,,부모 2종 매칭
+FK_ORPHAN,inventory_policy.category_id -> category_master.category_id,0,0,PASS,
+FK_CARDINALITY,inventory_policy.category_id -> category_master.category_id,추정 1:N,검증 1:1,DIFF,"부모당 최대자식=1, 자식유일=True"
+FK_CARD_DIST,category_master 1건당 inventory_policy 행수,,min=1 med=1 max=1 mean=1.0,,부모 19종 매칭
+FK_ORPHAN,purchase_order.sku_id -> sku_master.sku_id,0,0,PASS,
+FK_CARDINALITY,purchase_order.sku_id -> sku_master.sku_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=3, 자식유일=False"
+FK_CARD_DIST,sku_master 1건당 purchase_order 행수,,min=1 med=2 max=3 mean=1.91,,부모 388종 매칭
+FK_ORPHAN,receipt.po_id -> purchase_order.po_id,0,0,PASS,
+FK_CARDINALITY,receipt.po_id -> purchase_order.po_id,추정 1:1,검증 1:1,MATCH,"부모당 최대자식=1, 자식유일=True"
+FK_CARD_DIST,purchase_order 1건당 receipt 행수,,min=1 med=1 max=1 mean=1.0,,부모 741종 매칭
+FK_ORPHAN,receipt.sku_id -> sku_master.sku_id,0,0,PASS,
+FK_CARDINALITY,receipt.sku_id -> sku_master.sku_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=3, 자식유일=False"
+FK_CARD_DIST,sku_master 1건당 receipt 행수,,min=1 med=2 max=3 mean=1.91,,부모 388종 매칭
+FK_ORPHAN,receipt.warehouse_id -> warehouse_master.warehouse_id,0,0,PASS,
+FK_CARDINALITY,receipt.warehouse_id -> warehouse_master.warehouse_id,추정 1:N,검증 1:N,MATCH,"부모당 최대자식=634, 자식유일=False"
+FK_CARD_DIST,warehouse_master 1건당 receipt 행수,,min=107 med=370 max=634 mean=370.5,,부모 2종 매칭
+FK_ORPHAN,action_log.product_id -> product_master.product_id,0,0,PASS,
+FK_CARDINALITY,action_log.product_id -> product_master.product_id,추정 1:N,검증 1:1,DIFF,"부모당 최대자식=1, 자식유일=True"
+FK_CARD_DIST,product_master 1건당 action_log 행수,,min=1 med=1 max=1 mean=1.0,,부모 32종 매칭
+JOIN_BASE,order_item (판매 팩트 base),행=8831,행=8831,PASS,"합계 {'수량': 9114, '판매단가': 522451800, '상품할인액': 12264100, '쿠폰할인액': 4976600, 'canceled_amount': 12704700}"
+JOIN_STEP,+orders (order_id),"행=8831, 합보존","행=8831, 합동일",PASS,before=8831
+JOIN_STEP,+sku_master (sku_id),"행=8831, 합보존","행=8831, 합동일",PASS,before=8831
+JOIN_STEP,+product_master (product_id),"행=8831, 합보존","행=8831, 합동일",PASS,before=8831
+JOIN_STEP,+category_master (category_id),"행=8831, 합보존","행=8831, 합동일",PASS,before=8831
+JOIN_STEP,"+returns (order_item_id, 1:1)","행=8831, 합보존","행=8831, 합동일",PASS,before=8831
+JOIN_BASE,inventory_snapshot (재고 팩트 base),행=12369,행=12369,PASS,"합계 {'available_qty': 311501, 'on_hand_qty': 315735, 'inventory_value': 8618777200}"
+JOIN_STEP,+sku_master (sku_id),"행=12369, 합보존","행=12369, 합동일",PASS,before=12369
+JOIN_STEP,+product_master (product_id),"행=12369, 합보존","행=12369, 합동일",PASS,before=12369
+JOIN_STEP,+category_master (category_id),"행=12369, 합보존","행=12369, 합동일",PASS,before=12369
+JOIN_STEP,"+inventory_policy (category_id, 검증 1:1)","행=12369, 합보존","행=12369, 합동일",PASS,before=12369
+JOIN_BASE,purchase_order (공급 base),행=741,행=741,PASS,합계 {'발주수량': 14856}
+JOIN_STEP,"+receipt (po_id, 1:1)","행=741, 합보존","행=741, 합동일",PASS,before=741
+NM_GUARD,order_item × inventory_snapshot (sku_id 교차),미실행,미실행(승인 대기),HELD,fact×fact SKU 조인은 N:M fan-out → 승인 전 금지

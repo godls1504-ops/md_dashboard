@@ -195,10 +195,10 @@ md_dashboard/
 │   ├── app.py        # Streamlit 메인
 │   ├── pages/
 │   └── components/
-├── outputs/
+├── outputs/          # 재생성 산출물 (gitignore)
 │   ├── figures/      # 차트 이미지
-│   ├── tables/       # 분석 결과 CSV
-│   └── reports/
+│   └── tables/       # 분석 결과 CSV
+├── reports/          # 점검·분석 리포트 (추적 대상): 구조점검·변환검증·EDA·테이블 선정
 ├── logs/
 └── tests/
 ```

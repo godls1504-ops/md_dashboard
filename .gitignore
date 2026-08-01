@@ -27,5 +27,6 @@ node_modules/
 data/converted/
 data/interim/
 data/processed/
+data/marts/
 outputs/
 logs/
