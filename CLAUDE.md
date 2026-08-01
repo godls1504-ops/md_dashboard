@@ -70,9 +70,12 @@
 
 | 저장 위치 | 용도 |
 |---|---|
+| `data/converted/` | 원본 XLSX 승인 시트를 **무손실 변환**한 CSV (값·ID 보존, 재생성 가능) |
 | `data/interim/` | 정제·조인 진행 중인 중간 데이터 |
 | `data/processed/` | 정제 완료, 대시보드가 읽는 최종 데이터 |
 | `outputs/tables/` | 분석 단계별 집계 결과 (지표 테이블) |
+
+`data/converted/`는 `src/convert_xlsx.py`로 생성한다. 원본 시트명·열 순서·값을 그대로 보존하며(ID는 문자열), `python -m src.convert_xlsx`로 언제든 재생성된다. 승인 대상은 `data_dictionary`에 등재된 17개 테이블(README·data_dictionary 제외)이다.
 
 **파일 이름 규칙**: `{단계번호}_{분석내용}.csv`
 - 예: `01_cleaned_orderitem.csv`, `02_sellthrough_by_product.csv`, `03_wos_by_sku.csv`
@@ -80,9 +83,10 @@
 데이터 흐름은 한 방향이다:
 ```
 data/raw (원본 xlsx, 불변)
-   → data/interim (조인·가공 중)
-      → data/processed (최종)
-         → outputs/tables (분석 결과 집계)
+   → data/converted (무손실 CSV 변환, 승인 17시트)
+      → data/interim (조인·가공 중)
+         → data/processed (최종)
+            → outputs/tables (분석 결과 집계)
 ```
 
 ---
@@ -104,6 +108,20 @@ data/raw (원본 xlsx, 불변)
 **귀속(attribution) 주의**: `order_attribution`의 주문별 `attribution_weight` 합계는 1이다. `traffic_daily.attributed_order_credit`는 날짜·채널별 귀속 가중치 합계이므로, 채널 성과 배분 시 이 값을 사용한다.
 
 **액션 판단 기준**: 재고 조정은 WOS 단독이 아니라 `inventory_policy`의 카테고리·시즌별 `clearance_point_wos`·`reorder_point_wos`와 **품절 위험**을 함께 적용한다. 단, 정책 테이블은 교육용 승인 기준이며 정답이 아니므로 임계값 민감도를 함께 검토한다.
+
+---
+
+## 분석 결정 사항 (확정)
+
+아래는 확정된 프로젝트 결정으로, 분석·집계 시 예외 없이 적용한다.
+
+1. **분석 기준일 = 2026-07-31.** 이 시점 기준으로 "시즌 중간" 성과·재고를 진단한다.
+2. **기준일 이후 발생 이벤트(9건)는 "미발생"으로 간주.** `order_item.cancel_date`·`returns.처리일` 중 2026-07-31을 넘는 건은 기준일 스냅샷에 반영하지 않는다(아직 취소·반품이 일어나지 않은 것으로 처리).
+3. **매출·이익 집계 단위 = `orders`.** 품목(`order_item`) 값을 주문 단위로 집계해 산출한다.
+4. **6~7월 발주는 현재 "발주 중단" 상태**로 해석한다(신규 발주 없음). 재고·공급 판단 시 반영.
+5. **`inventory_policy` 범위**: 유효기간이 주문 데이터 기간(~2026-07-31)을 넘어 2026-08-31까지 이어지는 정책(8월 이후 시즌 포함)도 **이번 시즌 중간 점검 범위에 포함**한다.
+6. **`action_log.sku_id` 결측은 의도된 값**(상품 단위 액션)이다. 보정·추정·행 제거를 하지 않는다.
+7. **`action_log`는 `product_id` 단위로 통일**해 다룬다. `sku_id` 지정 여부를 액션의 실제 적용 범위로 해석하지 않으며, SKU 단위로 분해하지 않는다(근거 없는 정밀도 방지).
 
 ---
 
@@ -162,12 +180,14 @@ python -m pytest tests/ -v
 md_dashboard/
 ├── data/
 │   ├── raw/          # 원본 (읽기 전용) — ganaswim_dataset.xlsx
+│   ├── converted/    # 원본 승인 시트의 무손실 CSV (convert_xlsx.py 산출, 재생성 가능)
 │   ├── interim/      # 조인·가공 중 중간 산출물
 │   └── processed/    # 최종 분석 데이터
 ├── notebooks/        # 탐색적 분석
 ├── src/
 │   ├── config.py     # 경로·상수 단일 관리 (모든 경로는 여기서만 정의)
-│   ├── data_loader.py # 19개 시트 로딩·조인
+│   ├── convert_xlsx.py # 원본 XLSX → data/converted/*.csv 무손실 변환·검증
+│   ├── data_loader.py # data/converted CSV 로딩·조인
 │   ├── preprocess.py
 │   ├── metrics.py    # MD 지표 계산 함수 (위 "지표 정의"를 구현)
 │   └── viz.py
@@ -246,6 +266,6 @@ md_dashboard/
 
 - 원격: `https://github.com/godls1504-ops/md_dashboard` (기본 브랜치 `main`)
 - 현재 `ganaswim_dataset.xlsx`(합성 데이터)는 저장소에 포함돼 있다. **실제 고객·거래 데이터를 추가할 경우 절대 커밋하지 않는다**(`data/`를 gitignore, 필요한 합성 원본만 예외).
-- `outputs/`, `logs/`, `.venv/`, `data/interim/`, `data/processed/`는 커밋하지 않는다.
+- `outputs/`, `logs/`, `.venv/`, `data/converted/`, `data/interim/`, `data/processed/`는 커밋하지 않는다(모두 `data/raw` 원본에서 재생성 가능). `data/converted/`는 `python -m src.convert_xlsx`로 복원한다.
 - push 전에 스테이징 목록을 확인해 대외비·개인정보가 포함되지 않았는지 검증한다.
 - 커밋·push 등 원격 반영 작업은 **사용자 확인 후** 진행한다.

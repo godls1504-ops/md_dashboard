@@ -22,3 +22,10 @@ node_modules/
 *.log
 *.tmp
 ~$*
+
+# 프로젝트 데이터 파생물 (data/raw 원본에서 재생성 가능)
+data/converted/
+data/interim/
+data/processed/
+outputs/
+logs/
